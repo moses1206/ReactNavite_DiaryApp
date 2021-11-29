@@ -1,0 +1,28 @@
+1. /android 에 local.properties 생성
+
+sdk.dir=C\:\\users\\jangbuho\\AppData\\Local\\Android\\sdk  입력
+
+
+2. android/gradle/gradle-wrapper.properties
+
+distributionUrl=https\://services.gradle.org/distributions/gradle-6.2-all.zip
+  =
+  =
+  =
+ \ /
+distributionUrl=https\://services.gradle.org/distributions/gradle-6.3-all.zip
+
+
+3. 환경변수 설정
+
+    1) 시스템변수
+         - ANDROID_HOME , C:\Users\jangbuho\AppData\Local\Android\Sdk  추가
+
+    2) Path
+         - %ANDROID_HOME%\tools
+         - %ANDROID_HOME%\platform-tools
+
+4. android studio 에서 SDK manager 
+
+    show Package Detail 을 클릭하고
+    필요한 것을 설치

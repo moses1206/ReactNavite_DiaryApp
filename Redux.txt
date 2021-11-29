@@ -1,0 +1,71 @@
+
+<Redux>
+1. 통합 State 관리
+User        Input       Device         Action Creator  ------> Dispatch  ------>  Store
+BuHo        Touch                      함수(인출),함수(송금),함수(확인)             Reducer     Pre State -->  Fuction --> Next state
+                                                                                  함수(인출)                 함수(인출)
+                                                                                  함수(송금)                 함수(송금)
+                                                                                  함수(확인)                 함수(확인)         
+2. State Flow
+
+Reducer에서 State 변경 -->Connect (mapStateToProps,mapDispatchToProps) --> 디바이스에 State를 전달.
+
+3. Action
+    Exemple: 100,000 인출하기
+    {
+        type:"EXAMPLE_TYPE",
+        payload:"100,000"
+    }
+
+4. Action Creator (액션을 생성/반환 하는 함수)
+
+    const withdrawMoney = (params)=>{
+        code........
+        return {
+            type:WITHDRAW_MONEY,
+            payload:amount
+        }
+    }
+
+5. Dispatch
+    1) Store의 내장함수
+    2) Reducer에게 어떤 action이 발생했는지 알리는 함수
+
+    
+6. Store
+    1) App에 1개의 Store 존재
+    2) state , reducer , dispatch 등의 내장함수 존재
+
+7. state
+    1) State의 변경 ---> View의 변경
+
+8. Reducer ( state , action)
+    1) state에 변화를 일으키는 함수
+    2) input의 state,action 을 통해 리듀서에서 새로운 state를 생성한다.
+
+    export sampleReducer ( state=initialState, action) {
+        switch (action type) {
+            case WITHDRAW_MONEY:
+                 return {
+                     ...state,
+                     account:payload
+                 }
+        }
+
+        default:
+            return state
+    }
+
+9. Connect
+    1) 리액트 네이티브와 리덕스는 독립적으로 존재한다.
+    2) 독립적으로 존재하는 2개를 연결한다.
+    3) Store 내 state --> connect -->component Props
+    4) state 변경 --> 새로운 component 생성
+    5) store 의 state를 props로 전달 : mapStateToProps
+    6) reducer 의 액션을 알리는 함수 dispatch를 props로 전달 : mapDispatchToProps
+    7) connect ( mapStateToProps, mapDispatchToProps)(component)
+
+10. Redux의 3원칙
+    1) Single Source of Truth ( 1개의 Store 존재)
+    2) State in Read-Only (state는 반드시 action을 통해서 변경됨)
+    3) Reducer는 순수함수만 이루어져야한다. (인수변경 , API , 네트워크 요청이 들어가면 안된다.)

@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 
 import Input from '../../utils/forms/input';
+import ValidationRules from '../../utils/forms/validationRules';
 
 class AuthForm extends Component {
   state = {
@@ -30,19 +31,27 @@ class AuthForm extends Component {
       email: {
         type: 'textinput',
         value: '',
-        rules: {},
+        rules: {
+          isRequired: true,
+          isEmail: true,
+        },
         valid: false,
       },
       password: {
         type: 'textinput',
         value: '',
-        rules: {},
+        rules: {
+          isRequired: true,
+          minLength: 6,
+        },
         valid: false,
       },
       confirmPassword: {
         type: 'textinput',
         value: '',
-        rules: {},
+        rules: {
+          confirmPassword: 'password',
+        },
         valid: false,
       },
     },
@@ -55,10 +64,16 @@ class AuthForm extends Component {
 
     let formCopy = this.state.form;
     formCopy[name].value = value;
+
+    // Rules
+    let rules = formCopy[name].rules;
+    let valid = ValidationRules(value, rules, formCopy);
+    formCopy[name].valid = valid;
+
     this.setState({
       form: formCopy,
     });
-    console.warn(this.state.form);
+    // console.warn(this.state.form);
   };
 
   confirmPassword = () =>
@@ -92,6 +107,43 @@ class AuthForm extends Component {
     });
   };
 
+  submitUser = () => {
+    // Init.
+    let isFormValid = true;
+    let submittedForm = {};
+    const formCopy = this.state.form;
+
+    for (let key in formCopy) {
+      if (this.state.type === '로그인') {
+        if (key !== 'confirmPassword') {
+          isFormValid = isFormValid && formCopy[key].valid;
+          submittedForm[key] = formCopy[key].value;
+        }
+      } else {
+        isFormValid = isFormValid && formCopy[key].valid;
+        submittedForm[key] = formCopy[key].value;
+      }
+    }
+
+    if (isFormValid) {
+      if (this.state.type === '로그인') {
+        console.log('로그인: ');
+        for (let key in submittedForm) {
+          console.log(submittedForm[key]);
+        }
+      } else {
+        console.log('회원가입: ');
+        for (let key in submittedForm) {
+          console.log(submittedForm[key]);
+        }
+      }
+    } else {
+      this.setState({
+        hasErrors: true,
+      });
+    }
+  };
+
   render() {
     return (
       <View>
@@ -118,7 +170,11 @@ class AuthForm extends Component {
 
         <View style={{marginTop: 40}}>
           <View style={styles.button}>
-            <Button title={this.state.action} color="#48567f" />
+            <Button
+              title={this.state.action}
+              color="#48567f"
+              onPress={this.submitUser}
+            />
           </View>
 
           <View style={styles.button}>

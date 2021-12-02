@@ -1,1 +1,5 @@
-1. Project Start
+1. 에뮬레이터 단축키
+
+Ctrl + M : 메뉴보기
+
+Ctrl + T : 디버그 연결

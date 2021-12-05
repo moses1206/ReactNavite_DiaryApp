@@ -112,8 +112,9 @@ class DiaryComponent extends Component {
   render() {
     return (
       <View>
-        <ScrollView style={{backgroundColor: '#f0f0f0'}} />
-        {this.renderDiary(this.props.Diaries)}
+        <ScrollView style={{backgroundColor: '#f0f0f0'}}>
+          {this.renderDiary(this.props.Diaries)}
+        </ScrollView>
         <TouchableOpacity
           style={{
             position: 'absolute',

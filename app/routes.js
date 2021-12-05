@@ -8,7 +8,7 @@ import SignIn from './components/auth';
 import Diary from './components/diary';
 import News from './components/news';
 
-import DiaryDocu from './components/diary/diaryDocu';
+import DiaryDocu from './components/diary/diaryDocu.js';
 import Logo from './utils/logo';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';

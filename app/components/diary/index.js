@@ -22,6 +22,8 @@ import {
 import {connect} from 'react-redux';
 import {getDiaries} from '../../store/actions/diary_action';
 
+import TextTruncate from 'react-native-text-truncate';
+
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
@@ -33,13 +35,79 @@ class DiaryComponent extends Component {
   renderDiary = Diaries =>
     Diaries.documents
       ? Diaries.documents.map((item, index) => (
-          <TouchableOpacity key={index}>
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              this.props.navigation.navigate('DiaryDocu', {
+                newDiary: false,
+                diaryData: item,
+                index: index,
+                id: item.data.id,
+              });
+            }}>
             <View style={styles.diaryContainer}>
-              <Text>Hello World</Text>
+              <View style={{height: 160}}>
+                {item.data.imagePath ? (
+                  <View style={styles.indexView}>
+                    <Text style={{fontSize: 17, fontWeight: 'bold'}}>
+                      # {index + 1}
+                    </Text>
+                    <Image
+                      source={require('../../assets/images/image.png')}
+                      resizeMode="contain"
+                      style={{width: 20, height: 20}}
+                    />
+                  </View>
+                ) : (
+                  <View style={{paddingTop: 7, paddingLeft: 7}}>
+                    <Text># {index + 1}</Text>
+                  </View>
+                )}
+                {item.data.date ? (
+                  <View style={styles.dateView}>
+                    <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                      Date:{' '}
+                    </Text>
+                    <Text style={{fontSize: 16}}>{item.data.date}</Text>
+                  </View>
+                ) : null}
+
+                {item.data.title ? (
+                  <View style={styles.dateView}>
+                    <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                      Title:{' '}
+                    </Text>
+                    <Text style={{fontSize: 16}}>{item.data.title}</Text>
+                  </View>
+                ) : null}
+
+                {item.data.description ? (
+                  <View style={{paddingTop: 7, paddingLeft: 7}}>
+                    <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                      Description:{' '}
+                    </Text>
+                    <TextTruncate style={{fontSize: 16}} numberOfLines={2}>
+                      {item.data.description}
+                    </TextTruncate>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </TouchableOpacity>
         ))
       : null;
+
+  checkNextId = Diaries => {
+    if (Diaries.documents.length > 0) {
+      let numOfArrElements = Diaries.documents.length;
+      let lastDiaryIdx = Number(numOfArrElements) - 1;
+      let nextDiaryID = Diaries.documents[lastDiaryIdx].data.id + 1;
+
+      return nextDiaryID;
+    } else {
+      return 0;
+    }
+  };
 
   render() {
     return (
@@ -55,6 +123,8 @@ class DiaryComponent extends Component {
           onPress={() => {
             this.props.navigation.navigate('DiaryDocu', {
               newDiary: true,
+              index: this.props.Diaries.documents.length,
+              id: this.checkNextId(this.props.Diaries),
             });
           }}>
           <Image
@@ -77,6 +147,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 2,
     borderRadius: 2,
+  },
+  indexView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 7,
+    paddingLeft: 7,
+    paddingRight: 12,
+    alignItems: 'center',
+  },
+  dateView: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingTop: 7,
+    paddingLeft: 7,
   },
 });
 

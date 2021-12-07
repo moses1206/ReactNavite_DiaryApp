@@ -103,6 +103,7 @@ const AppTabComponent = () => {
   return (
     <MainScreenTab.Navigator
       tabBarOptions={{
+        keyboardHidesTabBar: true,
         showLabel: false,
         activeBackgroundColor: '#788DCF',
         inactiveBackgroundColor: '#7487C5',

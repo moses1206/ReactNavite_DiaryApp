@@ -38,7 +38,7 @@ class DiaryComponent extends Component {
           <TouchableOpacity
             key={index}
             onPress={() => {
-              this.props.navigation.navigate('DiaryDocu', {
+              this.props.navigation.push('DiaryDocu', {
                 newDiary: false,
                 diaryData: item,
                 index: index,
@@ -113,7 +113,9 @@ class DiaryComponent extends Component {
     return (
       <View>
         <ScrollView style={{backgroundColor: '#f0f0f0'}}>
-          {this.renderDiary(this.props.Diaries)}
+          <View style={{flexDirection: 'column-reverse'}}>
+            {this.renderDiary(this.props.Diaries)}
+          </View>
         </ScrollView>
         <TouchableOpacity
           style={{
@@ -122,7 +124,7 @@ class DiaryComponent extends Component {
             top: screenHeight * 0.7,
           }}
           onPress={() => {
-            this.props.navigation.navigate('DiaryDocu', {
+            this.props.navigation.push('DiaryDocu', {
               newDiary: true,
               index: this.props.Diaries.documents.length,
               id: this.checkNextId(this.props.Diaries),

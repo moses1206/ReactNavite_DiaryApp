@@ -46,6 +46,7 @@ class DiaryDocu extends Component {
             imagePath: params.diaryData.data.imagePath,
           },
           image: '',
+          userId: params.userId,
         })
       : (this.state = {
           newDiary: true,
@@ -59,6 +60,7 @@ class DiaryDocu extends Component {
             description: '',
             imagePath: '',
           },
+          userId: params.userId,
         });
     // console.warn(this.state);
 
@@ -95,7 +97,7 @@ class DiaryDocu extends Component {
   getImage = () => {
     storage
       .ref('diaryImage')
-      .child(`index${this.state.diaryData.id}/image.jpg`)
+      .child(`${this.state.userId}/${this.state.diaryData.imagePath}/image.jpg`)
       .getDownloadURL()
       .then(url => {
         this.setState({
@@ -111,7 +113,7 @@ class DiaryDocu extends Component {
       });
     });
 
-    let imageDir = `diaryImage/index${this.state.diaryData.id}`;
+    let imageDir = `index${this.state.diaryData.id}`;
 
     this.setState(prevState => ({
       diaryData: {
@@ -121,22 +123,52 @@ class DiaryDocu extends Component {
     }));
   };
 
-  deleteData = () => {};
+  deleteData = async () => {
+    const id = this.state.diaryData.id;
+    const userId = this.state.userId;
 
-  updateData = () => {};
+    const databaseDirectory = `diary/${userId}/${id}`;
+    const databaseRef = database.ref(databaseDirectory).child('data');
+
+    const storageDirectory = `diaryImage/${userId}/index${id}`;
+    const storageRef = storage.ref(storageDirectory).child('image.jpg');
+
+    try {
+      await databaseRef.remove();
+      await storageRef
+        .getDownloadURL()
+        .then(() => {
+          storageRef.delete().then(() => {
+            this.props.navigation.push('Diary');
+          });
+        })
+        .catch(() => {
+          this.props.navigation.push('Diary');
+        });
+    } catch (err) {
+      alert('삭제 실패: ', err.message);
+    }
+  };
+
+  updateData = () => {
+    this.setState({
+      newDiary: true,
+    });
+  };
 
   createData = async () => {
     this.setState({
       isLoading: true,
     });
 
+    const userId = this.state.userId;
     const data = this.state.diaryData;
     const id = data.id;
 
-    const databaseDirectory = `diary/${id}`;
+    const databaseDirectory = `diary/${userId}/${id}`;
     const databaseRef = database.ref(databaseDirectory);
 
-    const storageDirectory = `diaryImage/index${id}/image.jpg`;
+    const storageDirectory = `diaryImage/${userId}/index${id}/image.jpg`;
 
     try {
       await databaseRef.set({data});
@@ -353,8 +385,8 @@ class DiaryDocu extends Component {
 
             <Spinner
               visible={this.state.isLoading}
-              textContent={'다이어리 업로드 중 ...'}
-              overlayColor={'rgba(0,0,0,0.9'}
+              textContent={'다이어리 업로드 중...'}
+              overlayColor={'rgba(0,0,0,0.6)'}
               textStyle={{color: '#fff'}}
             />
           </View>

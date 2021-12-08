@@ -1,30 +1,29 @@
 import {GET_DIARIES} from '../types';
 
 import axios from 'axios';
+import {auth, database} from '../../utils/misc';
 
-export function getDiaries() {
-  const request = axios({
-    method: 'GET',
-    url:
-      'https://react-native-diary-app-811b6-default-rtdb.asia-southeast1.firebasedatabase.app/diary.json',
-  })
-    .then(response => {
+export function getDiaries(User) {
+  // auth.onAuthStateChanged(user => {
+  //   if (user) {
+  //     console.warn('user id is ... ', user);
+  //   } else {
+  //     console.warn('not logged in');
+  //   }
+  // });
+
+  return dispatch => {
+    const url = `diary/${User.auth.userId}`;
+    database.ref(url).on('value', dataSnapShot => {
       const diaryData = [];
-      for (let key in response.data) {
-        if (response.data[key]) {
+      for (let key in dataSnapShot.val()) {
+        if (dataSnapShot.val()[key]) {
           diaryData.push({
-            ...response.data[key],
+            ...dataSnapShot.val()[key],
           });
         }
       }
-      return diaryData;
-    })
-    .catch(err => {
-      alert('Get Failed!!');
-      return false;
+      dispatch({type: GET_DIARIES, payload: diaryData});
     });
-  return {
-    type: GET_DIARIES,
-    payload: request,
   };
 }

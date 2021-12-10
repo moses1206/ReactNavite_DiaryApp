@@ -5,9 +5,6 @@
  * @format
  * @flow
  */
-
-import 'react-native-gesture-handler';
-
 import React, {Component} from 'react';
 import {
   StyleSheet,
@@ -20,15 +17,12 @@ import {
   Button,
   BackHandler,
 } from 'react-native';
-
 import {connect} from 'react-redux';
 import {getDiaries} from '../../store/actions/diary_action';
-
 import TextTruncate from 'react-native-text-truncate';
 import {autoSignIn} from '../../store/actions/user_actions';
-
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {auth, getTokens, setTokens, removeTokens} from '../../utils/misc';
+import {getTokens, setTokens, auth, removeTokens} from '../../utils/misc';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -88,17 +82,21 @@ class DiaryComponent extends Component {
                     <Text style={{fontSize: 17, fontWeight: 'bold'}}>
                       # {index + 1}
                     </Text>
+
                     <Image
                       source={require('../../assets/images/image.png')}
-                      resizeMode="contain"
+                      resizeMode={'contain'}
                       style={{width: 20, height: 20}}
                     />
                   </View>
                 ) : (
                   <View style={{paddingTop: 7, paddingLeft: 7}}>
-                    <Text># {index + 1}</Text>
+                    <Text style={{fontSize: 17, fontWeight: 'bold'}}>
+                      # {index + 1}
+                    </Text>
                   </View>
                 )}
+
                 {item.data.date ? (
                   <View style={styles.dateView}>
                     <Text style={{fontSize: 16, fontWeight: 'bold'}}>
@@ -133,7 +131,7 @@ class DiaryComponent extends Component {
         ))
       : null;
 
-  checkNextId = Diaries => {
+  checkNextID = Diaries => {
     if (Diaries.documents.length > 0) {
       let numOfArrElements = Diaries.documents.length;
       let lastDiaryIdx = Number(numOfArrElements) - 1;
@@ -159,7 +157,7 @@ class DiaryComponent extends Component {
                 });
               })
               .catch(err => {
-                alert('Logout Failed', err, message);
+                alert('Logout Failed!!', err.message);
               });
           }}>
           <Image
@@ -174,6 +172,7 @@ class DiaryComponent extends Component {
 
   render() {
     this.headerStyle();
+    console.disableYellowBox = true;
     return (
       <View>
         {this.state.isAuth ? (
@@ -192,7 +191,7 @@ class DiaryComponent extends Component {
             }}>
             <Icon name="emoticon-sad-outline" size={100} color="#48567f" />
             <Text style={{margin: 20, fontSize: 17}}>
-              로그인이 필요한 화면입니다.
+              로그인이 필요한 화면입니다
             </Text>
             <Button
               title="로그인 / 회원가입"
@@ -213,7 +212,7 @@ class DiaryComponent extends Component {
               this.props.navigation.push('DiaryDocu', {
                 newDiary: true,
                 index: this.props.Diaries.documents.length,
-                id: this.checkNextId(this.props.Diaries),
+                id: this.checkNextID(this.props.Diaries),
                 userId: this.props.User.auth.userId,
               });
             }}>

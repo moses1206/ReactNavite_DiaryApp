@@ -10,8 +10,79 @@ import 'react-native-gesture-handler';
 
 import React, {Component} from 'react';
 import {StyleSheet, View, Text, Image} from 'react-native';
+import axios from 'axios';
 
 class NewsComponent extends Component {
+  state = {
+    covid: {
+      dateTime: '',
+      confirmed: 0, //  확진환자
+      confirmedDailyChange: 0, //  확진환자 일일 변화량
+      released: 0, //  격리해제
+      releasedDailyChange: 0, //  격리해제 일일 변화량
+      deceased: 0, //  사망자
+      deceasedDailyChange: 0, //  사망자 일일 변화량
+      inProgress: 0, //  검사진행
+      inProgressDailyChange: 0, //  검사진행 일일 변화량
+    },
+    dust: {
+      place: '서울',
+      dateTime: '',
+      findDust: 0, //미세먼지
+      findDustLevel: '', //미세먼지단계
+      ultraFineDust: 0, //초미세먼지
+      ultraFineDustLevel: '', //초미세먼지 단계
+      nitrogenDioxide: 0, //이산화질소
+      nitrogenDioxideLevel: '', //이산화질소 단계
+    },
+  };
+
+  componentDidMount() {
+    let today = this.formatDate().today;
+    let yesterday = this.formatDate().yesterday;
+
+    const requestCovid = axios({
+      method: 'GET',
+      url: `http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson?serviceKey=JPCJBhHkEmVJa4RL%2F%2BlRrCxlifwUtXvrSR4UxB2L5p474%2BKIVjoB4slHLEI9iA0ufFUKMgavLE9Ey1RVk8ZnGA%3D%3D&pageNo=1&numOfRows=10&startCreateDt=${yesterday}&endCreateDt=${today}`,
+    }).then(response => {
+      this.makeCovidDate(response.data);
+    });
+  }
+
+  makeCovidDate = data => {
+    let covidData;
+    console.log('covidData', data);
+  };
+
+  formatDate = () => {
+    let todayDate = new Date();
+    let today = this.calculateDate(todayDate);
+
+    let yesterdayDate = new Date(Date.now() - 86400000);
+    // 84600000 = 24 * 60 * 1000 ==> 하루를 ms단위로 변환
+    let yesterday = this.calculateDate(yesterdayDate);
+
+    let dateData = {
+      today: today,
+      yesterday: yesterday,
+    };
+
+    return dateData;
+  };
+
+  calculateDate = date => {
+    let year = date.getFullYear();
+    let month = (date.getMonth() + 1).toString(); //getMonth는 0~11까지 값을 반환함으로 +1을 해준다.
+    let day = date.getDate().toString();
+
+    if (month.length < 2) month = `0${month}`; // 01 02 이렇게 값을 반환하기 위해 0을 붙여준다.
+    if (day.length < 2) day = `0${day}`; //
+
+    let finalDate = `${year}${month}${day}`;
+
+    return finalDate;
+  };
+
   render() {
     return (
       <View style={styles.newsContainer}>

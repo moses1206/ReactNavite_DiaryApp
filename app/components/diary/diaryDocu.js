@@ -5,9 +5,6 @@
  * @format
  * @flow
  */
-
-import 'react-native-gesture-handler';
-
 import React, {Component} from 'react';
 import {
   StyleSheet,
@@ -23,7 +20,6 @@ import {
   Keyboard,
 } from 'react-native';
 import {storage, database} from '../../utils/misc';
-
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 
@@ -41,7 +37,6 @@ class DiaryDocu extends Component {
             id: params.diaryData.data.id,
             date: params.diaryData.data.date,
             title: params.diaryData.data.title,
-            title: params.diaryData.data.title,
             description: params.diaryData.data.description,
             imagePath: params.diaryData.data.imagePath,
           },
@@ -56,13 +51,13 @@ class DiaryDocu extends Component {
             id: params.id,
             date: '',
             title: '',
-            title: '',
             description: '',
             imagePath: '',
           },
           userId: params.userId,
         });
-    // console.warn(this.state);
+
+    //console.warn(this.state)
 
     !params.newDiary && params.diaryData.data.imagePath
       ? this.getImage()
@@ -167,7 +162,6 @@ class DiaryDocu extends Component {
 
     const databaseDirectory = `diary/${userId}/${id}`;
     const databaseRef = database.ref(databaseDirectory);
-
     const storageDirectory = `diaryImage/${userId}/index${id}/image.jpg`;
 
     try {
@@ -184,8 +178,6 @@ class DiaryDocu extends Component {
   uploadImage = async imgDir => {
     if (this.state.image) {
       const response = await fetch(this.state.image);
-      // 텍스트가 아닌 이미지나 동영상등의 대용량 라이브러리를 담는 그릇
-      // 이미지를 서버에 저장할 수 있는 형태를 이미지를 바꾸어주는 것
       const blob = await response.blob();
 
       try {
@@ -208,8 +200,7 @@ class DiaryDocu extends Component {
       this.setState({
         isLoading: false,
       });
-      // this.props.navigation.navigate("Diary") ==> 이전화면을 그대로 보여준다(화면 새로 고침 안됨)
-      this.props.navigation.push('Diary'); // ==> 새로운 데이터가 생성되었다면 화면을 새로고쳐서 데이터를 갱신힌다.
+      this.props.navigation.push('Diary');
     }
   };
 
@@ -224,6 +215,7 @@ class DiaryDocu extends Component {
             <View style={styles.indexView}>
               <Text style={styles.indexText}># {this.state.index + 1}</Text>
             </View>
+
             <View style={styles.dateView}>
               <Text style={styles.dateText}>Date: </Text>
               <View style={styles.dateInputView}>
@@ -286,7 +278,7 @@ class DiaryDocu extends Component {
                     <TextInput
                       value={this.state.diaryData.description}
                       style={{fontSize: 20, paddingTop: 0, paddingBottom: 0}}
-                      placeholder="상세내용"
+                      placeholder="내용"
                       placeholderTextColor="#777"
                       onChangeText={value =>
                         this.onChangeInput('description', value)
@@ -361,25 +353,23 @@ class DiaryDocu extends Component {
                   </TouchableOpacity>
                 </View>
               ) : null}
+
               {!this.state.newDiary ? (
-                <View style={styles.buttonView}>
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                      style={{fontSize: 15, padding: 5}}
-                      onPress={() => this.updateData()}>
-                      <Text>수정</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : null}
-              <View style={styles.buttonView}>
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
                     style={{fontSize: 15, padding: 5}}
-                    onPress={() => this.createData()}>
-                    <Text>완료</Text>
+                    onPress={() => this.updateData()}>
+                    <Text>수정</Text>
                   </TouchableOpacity>
                 </View>
+              ) : null}
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={{fontSize: 15, padding: 5}}
+                  onPress={() => this.createData()}>
+                  <Text>완료</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -412,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   dateView: {
-    // flex: 1,
+    //flex: 1,
     height: 40,
     paddingLeft: 15,
     paddingRight: 15,
@@ -447,7 +437,7 @@ const styles = StyleSheet.create({
     paddingRight: 15,
     flexDirection: 'row',
   },
-  imageDiplayView: {
+  imageDisplayView: {
     flex: 0.9,
     marginTop: 5,
   },

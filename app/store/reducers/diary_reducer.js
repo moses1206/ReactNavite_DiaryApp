@@ -7,7 +7,6 @@ export default function(state = {}, action) {
         ...state,
         documents: action.payload || false,
       };
-
     default:
       return state;
   }

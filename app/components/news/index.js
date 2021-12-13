@@ -16,24 +16,24 @@ class NewsComponent extends Component {
   state = {
     covid: {
       dateTime: '',
-      confirmed: 0, //  확진환자
-      confirmedDailyChange: 0, //  확진환자 일일 변화량
-      released: 0, //  격리해제
-      releasedDailyChange: 0, //  격리해제 일일 변화량
-      deceased: 0, //  사망자
-      deceasedDailyChange: 0, //  사망자 일일 변화량
-      inProgress: 0, //  검사진행
-      inProgressDailyChange: 0, //  검사진행 일일 변화량
+      confirmed: 0, // 확진환자
+      confirmedDailyChange: 0, // 확진환자 일일 변화량
+      released: 0, // 격리해제
+      releasedDailyChange: 0, // 격리해제 일일 변화량
+      deceased: 0, // 사망자
+      deceasedDailyChange: 0, // 사망자 일일 변화량
+      inProgress: 0, // 검사진행
+      inProgressDailyChange: 0, // 검사진행 일일 변화량
     },
     dust: {
       place: '서울',
       dateTime: '',
-      findDust: 0, //미세먼지
-      findDustLevel: '', //미세먼지단계
-      ultraFineDust: 0, //초미세먼지
-      ultraFineDustLevel: '', //초미세먼지 단계
-      nitrogenDioxide: 0, //이산화질소
-      nitrogenDioxideLevel: '', //이산화질소 단계
+      fineDust: 0, // 미세먼지
+      fineDustLevel: '', // 미세먼지 단계
+      ultraFineDust: 0, // 초미세먼지
+      ultraFineDustLevel: '', // 초미세먼지 단계
+      nitrogenDioxide: 0, // 이산화질소
+      nitrogenDioxideLevel: '', // 이산화질소 단계
     },
   };
 
@@ -45,13 +45,122 @@ class NewsComponent extends Component {
       method: 'GET',
       url: `http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson?serviceKey=JPCJBhHkEmVJa4RL%2F%2BlRrCxlifwUtXvrSR4UxB2L5p474%2BKIVjoB4slHLEI9iA0ufFUKMgavLE9Ey1RVk8ZnGA%3D%3D&pageNo=1&numOfRows=10&startCreateDt=${yesterday}&endCreateDt=${today}`,
     }).then(response => {
-      this.makeCovidDate(response.data);
+      this.makeCovidData(response.data);
     });
+
+    const fineDust = ['PM10', 'PM25', 'NO2'];
+
+    for (const item of fineDust) {
+      const requestDust = axios({
+        method: 'GET',
+        url: `http://apis.data.go.kr/B552584/ArpltnStatsSvc/getCtprvnMesureLIst?itemCode=${item}&dataGubun=HOUR&pageNo=1&numOfRows=100&returnType=json&serviceKey=JPCJBhHkEmVJa4RL%2F%2BlRrCxlifwUtXvrSR4UxB2L5p474%2BKIVjoB4slHLEI9iA0ufFUKMgavLE9Ey1RVk8ZnGA%3D%3D`,
+      }).then(response => {
+        this.makeDustData(item, response.data);
+      });
+    }
+    console.log(this.state.covid);
   }
 
-  makeCovidDate = data => {
+  makeDustData = (item, data) => {
+    let dustData;
+    let value, level;
+
+    for (let key in data) dustData = data[key];
+    //console.log('dustData: ', dustData)
+
+    value = dustData.body.items[0].seoul;
+
+    if (item === 'PM10') {
+      if (value <= 30) {
+        level = '좋음';
+      } else if (value > 30 && value <= 50) {
+        level = '보통';
+      } else if (value > 51 && value <= 100) {
+        level = '나쁨';
+      } else if (value > 101) {
+        level = '매우나쁨';
+      }
+
+      this.setState(prevData => ({
+        dust: {
+          ...prevData.dust,
+          dateTime: dustData.body.items[0].dataTime,
+          fineDust: value,
+          fineDustLevel: level,
+        },
+      }));
+    } else if (item === 'PM25') {
+      if (value <= 15) {
+        level = '좋음';
+      } else if (value > 15 && value <= 25) {
+        level = '보통';
+      } else if (value > 25 && value <= 50) {
+        level = '나쁨';
+      } else if (value > 51) {
+        level = '매우나쁨';
+      }
+
+      this.setState(prevData => ({
+        dust: {
+          ...prevData.dust,
+          ultraFineDust: value,
+          ultraFineDustLevel: level,
+        },
+      }));
+    } else if (item === 'NO2') {
+      if (value <= 0.03) {
+        level = '좋음';
+      } else if (value > 0.03 && value <= 0.06) {
+        level = '보통';
+      } else if (value > 0.06 && value <= 0.2) {
+        level = '나쁨';
+      } else if (value > 0.2) {
+        level = '매우나쁨';
+      }
+
+      this.setState(prevData => ({
+        dust: {
+          ...prevData.dust,
+          nitrogenDioxide: value,
+          nitrogenDioxideLevel: level,
+        },
+      }));
+    }
+  };
+
+  makeCovidData = data => {
     let covidData;
-    console.log('covidData', data);
+    for (let key in data) {
+      covidData = data[key];
+      //console.log('covidData: ', covidData)
+    }
+
+    let prevData = covidData.body.items.item[1];
+    let currData = covidData.body.items.item[0];
+
+    // console.log('prevData: ', prevData)
+    // console.log('currData: ', currData)
+
+    let covidCopy = this.state.covid;
+    covidCopy.dateTime = currData.createDt;
+    covidCopy.confirmed = this.addComma(currData.decideCnt); // 확진환자
+    covidCopy.released = this.addComma(currData.clearCnt); // 격리해제
+    covidCopy.deceased = this.addComma(currData.deathCnt); // 사망자
+    covidCopy.inProgress = this.addComma(currData.examCnt); // 검사진행
+
+    covidCopy.confirmedDailyChange = currData.decideCnt - prevData.decideCnt; // 확진환자 변화량
+    covidCopy.releasedDailyChange = currData.clearCnt - prevData.clearCnt; // 격리해제 변화량
+    covidCopy.deceasedDailyChange = currData.deathCnt - prevData.deathCnt; // 사망자 변화량
+    covidCopy.inProgressDailyChange = currData.examCnt - prevData.examCnt; // 검사진행 변화량
+
+    this.setState({
+      covid: covidCopy,
+    });
+  };
+
+  addComma = num => {
+    let regExp = /\B(?=(\d{3})+(?!\d))/g;
+    return num.toString().replace(regExp, ',');
   };
 
   formatDate = () => {
@@ -59,7 +168,7 @@ class NewsComponent extends Component {
     let today = this.calculateDate(todayDate);
 
     let yesterdayDate = new Date(Date.now() - 86400000);
-    // 84600000 = 24 * 60 * 1000 ==> 하루를 ms단위로 변환
+    // 86400000 = 24 * 60 * 60 * 1000
     let yesterday = this.calculateDate(yesterdayDate);
 
     let dateData = {
@@ -72,15 +181,38 @@ class NewsComponent extends Component {
 
   calculateDate = date => {
     let year = date.getFullYear();
-    let month = (date.getMonth() + 1).toString(); //getMonth는 0~11까지 값을 반환함으로 +1을 해준다.
+    let month = (date.getMonth() + 1).toString();
     let day = date.getDate().toString();
 
-    if (month.length < 2) month = `0${month}`; // 01 02 이렇게 값을 반환하기 위해 0을 붙여준다.
-    if (day.length < 2) day = `0${day}`; //
+    if (month.length < 2) month = `0${month}`;
+    if (day.length < 2) day = `0${day}`;
 
     let finalDate = `${year}${month}${day}`;
 
     return finalDate;
+  };
+
+  selectEmoticon = () => {
+    const fineDustLevel = this.state.dust.fineDustLevel;
+    let emoticonPath;
+
+    switch (fineDustLevel) {
+      case '좋음':
+        emoticonPath = require('../../assets/images/very_good.png');
+        return emoticonPath;
+      case '보통':
+        emoticonPath = require('../../assets/images/good.png');
+        return emoticonPath;
+      case '나쁨':
+        emoticonPath = require('../../assets/images/bad.png');
+        return emoticonPath;
+      case '매우나쁨':
+        emoticonPath = require('../../assets/images/very_bad.png');
+        return emoticonPath;
+      default:
+        emoticonPath = require('../../assets/images/very_good.png');
+        return emoticonPath;
+    }
   };
 
   render() {
@@ -99,7 +231,7 @@ class NewsComponent extends Component {
               justifyContent: 'center',
               flexDirection: 'row',
             }}>
-            <Text style={styles.timeText}>hh:mm xx:xx</Text>
+            <Text style={styles.timeText}>{this.state.covid.dateTime}</Text>
             <Text style={styles.timeText}>기준</Text>
           </View>
 
@@ -107,50 +239,115 @@ class NewsComponent extends Component {
             <View style={{flex: 1}}>
               <Text style={styles.mainText}>확진환자</Text>
             </View>
+
             <View style={{flex: 1}}>
-              <Text style={[styles.mainText, styles.redText]}>10,000</Text>
+              <Text style={[styles.mainText, styles.redText]}>
+                {this.state.covid.confirmed}
+              </Text>
             </View>
-            <View style={{flex: 1}}>
-              <Text style={{fontSize: 20}}>▲450</Text>
-            </View>
+
+            {this.state.covid.confirmedDailyChange > 0 ? (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▲ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.confirmedDailyChange)}
+                </Text>
+              </View>
+            ) : (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▼ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.confirmedDailyChange * -1)}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.contentView}>
             <View style={{flex: 1}}>
               <Text style={styles.mainText}>격리해제</Text>
             </View>
+
             <View style={{flex: 1}}>
-              <Text style={[styles.mainText, styles.blueText]}>5,000</Text>
+              <Text style={[styles.mainText, styles.blueText]}>
+                {this.state.covid.released}
+              </Text>
             </View>
-            <View style={{flex: 1}}>
-              <Text style={{fontSize: 20}}>▲260</Text>
-            </View>
+
+            {this.state.covid.releasedDailyChange > 0 ? (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▲ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.releasedDailyChange)}
+                </Text>
+              </View>
+            ) : (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▼ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.releasedDailyChange * -1)}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.contentView}>
             <View style={{flex: 1}}>
               <Text style={styles.mainText}>사망자</Text>
             </View>
+
             <View style={{flex: 1}}>
-              <Text style={[styles.mainText, styles.grayText]}>400</Text>
+              <Text style={[styles.mainText, styles.grayText]}>
+                {this.state.covid.deceased}
+              </Text>
             </View>
-            <View style={{flex: 1}}>
-              <Text style={{fontSize: 20}}>▲0</Text>
-            </View>
+
+            {this.state.covid.deceasedDailyChange > 0 ? (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▲ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.deceasedDailyChange)}
+                </Text>
+              </View>
+            ) : (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▼ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.deceasedDailyChange * -1)}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.contentView}>
             <View style={{flex: 1}}>
               <Text style={styles.mainText}>검사진행</Text>
             </View>
+
             <View style={{flex: 1}}>
-              <Text style={[styles.mainText, styles.grayText]}>1,500</Text>
+              <Text style={[styles.mainText, styles.grayText]}>
+                {this.state.covid.inProgress}
+              </Text>
             </View>
-            <View style={{flex: 1}}>
-              <Text style={{fontSize: 20}}>▲0</Text>
-            </View>
+
+            {this.state.covid.inProgressDailyChange > 0 ? (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▲ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.inProgressDailyChange)}
+                </Text>
+              </View>
+            ) : (
+              <View style={{flex: 1, flexDirection: 'row'}}>
+                <Text style={{fontSize: 20}}>▼ </Text>
+                <Text style={{fontSize: 20}}>
+                  {this.addComma(this.state.covid.inProgressDailyChange * -1)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
+
         <View style={styles.dustContainer}>
           <View
             style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -165,21 +362,30 @@ class NewsComponent extends Component {
               flexDirection: 'row',
             }}>
             <Text style={styles.timeText}>서울</Text>
-            <Text style={styles.timeText}>mm.dd. xx:xx</Text>
+            <Text style={styles.timeText}>{this.state.dust.dateTime}</Text>
             <Text style={styles.timeText}> 기준</Text>
           </View>
 
           <View style={{flex: 1.8, justifyContent: 'center'}}>
             <View style={{alignItems: 'center'}}>
               <Image
-                source={require('../../assets/images/good.png')}
+                source={this.selectEmoticon()}
                 style={{width: 60, height: 60}}
                 resizeMode="contain"
               />
             </View>
 
             <View style={{alignItems: 'center', paddingTop: 8}}>
-              <Text style={[styles.emoticonText, styles.blueText]}>좋음</Text>
+              {(this.state.dust.fineDustLevel === '좋음') |
+              (this.state.dust.fineDustLevel === '보통') ? (
+                <Text style={[styles.emoticonText, styles.blueText]}>
+                  {this.state.dust.fineDustLevel}
+                </Text>
+              ) : (
+                <Text style={[styles.emoticonText, styles.redText]}>
+                  {this.state.dust.fineDustLevel}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -189,12 +395,21 @@ class NewsComponent extends Component {
             </View>
 
             <View style={{flex: 1, alignItems: 'center'}}>
-              <Text style={[styles.mainText, styles.blueText]}>좋음</Text>
+              {(this.state.dust.fineDustLevel === '좋음') |
+              (this.state.dust.fineDustLevel === '보통') ? (
+                <Text style={[styles.emoticonText, styles.blueText]}>
+                  {this.state.dust.fineDustLevel}
+                </Text>
+              ) : (
+                <Text style={[styles.emoticonText, styles.redText]}>
+                  {this.state.dust.fineDustLevel}
+                </Text>
+              )}
             </View>
 
             <View style={{flex: 1, flexDirection: 'row'}}>
-              <Text style={{fontSize: 20}}>30 </Text>
-              <Text style={{fontSize: 20}}>㎍/m3</Text>
+              <Text style={{fontSize: 20}}>{this.state.dust.fineDust} </Text>
+              <Text style={{fontSize: 20}}>µg/m3</Text>
             </View>
           </View>
 
@@ -204,12 +419,23 @@ class NewsComponent extends Component {
             </View>
 
             <View style={{flex: 1, alignItems: 'center'}}>
-              <Text style={[styles.mainText, styles.blueText]}>좋음</Text>
+              {(this.state.dust.ultraFineDustLevel === '좋음') |
+              (this.state.dust.ultraFineDustLevel === '보통') ? (
+                <Text style={[styles.emoticonText, styles.blueText]}>
+                  {this.state.dust.ultraFineDustLevel}
+                </Text>
+              ) : (
+                <Text style={[styles.emoticonText, styles.redText]}>
+                  {this.state.dust.ultraFineDustLevel}
+                </Text>
+              )}
             </View>
 
             <View style={{flex: 1, flexDirection: 'row'}}>
-              <Text style={{fontSize: 20}}>15 </Text>
-              <Text style={{fontSize: 20}}>㎍/m3</Text>
+              <Text style={{fontSize: 20}}>
+                {this.state.dust.ultraFineDust}{' '}
+              </Text>
+              <Text style={{fontSize: 20}}>µg/m3</Text>
             </View>
           </View>
 
@@ -219,11 +445,22 @@ class NewsComponent extends Component {
             </View>
 
             <View style={{flex: 1, alignItems: 'center'}}>
-              <Text style={[styles.mainText, styles.blueText]}>좋음</Text>
+              {(this.state.dust.nitrogenDioxideLevel === '좋음') |
+              (this.state.dust.nitrogenDioxideLevel === '보통') ? (
+                <Text style={[styles.emoticonText, styles.blueText]}>
+                  {this.state.dust.nitrogenDioxideLevel}
+                </Text>
+              ) : (
+                <Text style={[styles.emoticonText, styles.redText]}>
+                  {this.state.dust.nitrogenDioxideLevel}
+                </Text>
+              )}
             </View>
 
             <View style={{flex: 1, flexDirection: 'row'}}>
-              <Text style={{fontSize: 20}}>0.027 </Text>
+              <Text style={{fontSize: 20}}>
+                {this.state.dust.nitrogenDioxide}{' '}
+              </Text>
               <Text style={{fontSize: 20}}>ppm</Text>
             </View>
           </View>
